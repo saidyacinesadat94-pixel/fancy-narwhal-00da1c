@@ -398,6 +398,22 @@
   }
   renderCart();
 
+  // Date minimale : 48h après la date actuelle
+  const dateInput = document.getElementById('date');
+  function minOrderDate(){
+    const d = new Date();
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate() + 2);
+    return d;
+  }
+  function toInputDate(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const j = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${j}`;
+  }
+  dateInput.min = toInputDate(minOrderDate());
+
   document.getElementById('orderForm').addEventListener('submit', async e => {
     e.preventDefault();
     const total = renderCart();
@@ -408,7 +424,16 @@
 
     if(selected.length === 0){
       status.className = 'err';
+      status.style.display = '';
       status.textContent = 'Veuillez sélectionner au moins une pâtisserie.';
+      return;
+    }
+
+    const chosen = new Date(dateInput.value + 'T00:00:00');
+    if(!dateInput.value || isNaN(chosen) || chosen < minOrderDate()){
+      status.className = 'err';
+      status.style.display = '';
+      status.textContent = 'La date doit être au minimum 48 h après aujourd\'hui. Merci de choisir une date plus éloignée.';
       return;
     }
 
@@ -435,12 +460,14 @@
     try {
       await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, params);
       status.className = 'ok';
-      status.textContent = 'Merci ! Votre commande a bien été envoyée. Je vous contacterai pour confirmer.';
+      status.style.display = '';
+      status.innerHTML = 'Merci ! Votre commande a bien été envoyée.<br>Elle sera confirmée dans les heures qui suivent&nbsp;: je vous contacte pour valider la date et les détails.';
       document.getElementById('orderForm').reset();
       PRODUCTS.forEach(p => { qty[p.id]=0; document.getElementById('val-'+p.id).textContent='0'; });
       renderCart();
     } catch(err){
       status.className = 'err';
+      status.style.display = '';
       status.textContent = "Une erreur est survenue. Réessayez ou contactez-moi directement.";
       console.error(err);
     } finally {
