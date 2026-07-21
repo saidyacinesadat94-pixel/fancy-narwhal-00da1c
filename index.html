@@ -34,6 +34,7 @@
     padding:96px 24px 72px;
     position:relative;
     overflow:hidden;
+    background:var(--blush);
   }
   header.hero .bgvid{
     position:absolute;inset:0;width:100%;height:100%;
@@ -146,6 +147,8 @@
     width:38px;height:38px;border:none;background:#fff;cursor:pointer;
     font-size:20px;color:var(--rose-deep);transition:background .15s;
     font-family:'Jost',sans-serif;
+    touch-action:manipulation;-webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;
   }
   .stepper button:hover{background:var(--blush)}
   .stepper .val{width:40px;text-align:center;font-size:16px;font-weight:500}
@@ -236,6 +239,34 @@
 
   footer{text-align:center;padding:40px 24px 56px;color:#a08c88;font-size:13px;font-weight:300}
   footer .flourish{margin-bottom:20px}
+
+  /* Zones tactiles : pas d'effet hover collant sur mobile */
+  @media (hover:none){
+    .stepper button:hover{background:#fff}
+    .card:hover{transform:none;box-shadow:none}
+  }
+
+  /* MOBILE */
+  @media (max-width:600px){
+    header.hero{padding:64px 20px 48px;min-height:60vh}
+    .hero h1{font-size:44px}
+    .hero p.lead{font-size:15px}
+
+    .wrap{padding-left:16px;padding-right:16px}
+    .grid{grid-template-columns:1fr;gap:20px}
+
+    .order-inner{padding:24px 18px}
+
+    /* Steppers plus gros et plus faciles à toucher */
+    .qtyrow{gap:8px}
+    .stepper button{width:46px;height:46px;font-size:24px}
+    .stepper .val{width:44px;font-size:18px}
+
+    .two{grid-template-columns:1fr}
+
+    .field input, .field textarea{font-size:16px} /* évite le zoom auto iOS */
+    .submit{font-size:16px;padding:16px}
+  }
 </style>
 </head>
 <body>
@@ -298,6 +329,10 @@
           </div>
         </div>
         <div class="field">
+          <label for="adresse">Adresse</label>
+          <input type="text" id="adresse" required>
+        </div>
+        <div class="field">
           <label for="notes">Notes (allergies, personnalisation, occasion...)</label>
           <textarea id="notes"></textarea>
         </div>
@@ -348,6 +383,19 @@
 
 <script>
   emailjs.init({ publicKey: "FXIjU4bcbH9kJejQA" });
+
+  // Lecture de la vidéo de fond (certains mobiles bloquent l'autoplay silencieux)
+  (function(){
+    const v = document.querySelector('.bgvid');
+    if(!v) return;
+    v.muted = true;
+    v.setAttribute('muted','');
+    v.playsInline = true;
+    const tryPlay = () => { const p = v.play(); if(p && p.catch) p.catch(()=>{}); };
+    tryPlay();
+    document.addEventListener('touchstart', tryPlay, { once:true });
+    document.addEventListener('click', tryPlay, { once:true });
+  })();
 
   const EMAILJS_SERVICE = "service_bs9ycrs";
   const EMAILJS_TEMPLATE = "template_z713umr";
@@ -499,6 +547,7 @@
       client_telephone: document.getElementById('tel').value,
       client_courriel: document.getElementById('courriel').value,
       reply_to: document.getElementById('courriel').value,
+      client_adresse: document.getElementById('adresse').value,
       date_commande: document.getElementById('date').value,
       details_commande: details,
       total: fmt(total),
